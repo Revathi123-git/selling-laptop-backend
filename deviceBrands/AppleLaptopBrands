@@ -1,0 +1,15 @@
+module.exports = [
+  {
+    brand: "Apple",
+    models: [
+      'MacBook Air 13" M1',
+      'MacBook Air 15" M2',
+      'MacBook Pro 13" M2',
+      'MacBook Pro 14" M1 Pro',
+      'MacBook Pro 16" M1 Max',
+      'MacBook Pro 14" M2 Pro',
+      'MacBook Pro 16" M2 Max',
+      'MacBook 12" Retina (2017)'
+    ]
+  }
+];
