@@ -11,8 +11,12 @@ const adminRoutes = require("./routes/adminRoutes"); // optional (if admin panel
 
 const app = express();
 
-app.use(cors({ origin: "https://escraplaptops.vercel.app", credentials: true }));
-app.use(express.json());
+app.use(
+  cors({
+    origin: "https://www.escrapeelectronics.com",
+    credentials: true,
+  })
+);app.use(express.json());
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/sell_device_db";
 
