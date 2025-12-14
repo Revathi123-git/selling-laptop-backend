@@ -11,12 +11,27 @@ const adminRoutes = require("./routes/adminRoutes"); // optional (if admin panel
 
 const app = express();
 
-app.use(
+ app.use(
   cors({
     origin: "https://www.escrapeelectronics.com",
     credentials: true,
   })
-);app.use(express.json());
+); 
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
+app.use(express.json());
 
 const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/sell_device_db";
 

@@ -25,11 +25,19 @@ const iPhoneModels = [
   "iPhone 15", "iPhone 15 Plus", "iPhone 15 Pro", "iPhone 15 Pro Max"
 ];
 
+// ✅ Add this at the TOP of the file
+function normalizeCategory(value = "") {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[-\s]+/g, "-");
+}
+
 function validateBrandModel(brand, model, category) {
   let brandList;
 switch (category.toLowerCase()) {
   case "desktop": 
-    brandList = desktopBrands; 
+    brandList = desktopBrands;  
     break;
   case "laptop": 
     brandList = laptopBrands; 
@@ -86,19 +94,27 @@ switch (category.toLowerCase()) {
       }, {})
     : {};
 
+
     // If brand is optional and user leaves it empty → SKIP validation
 if (!brand || brand.trim() === "") {
-  return { valid: true, message: "Brand and model skipped (optional fields)." };
+  return { valid: true, message: "Brand skipped (optional fields)." };
+}
+
+// If model is optional and left empty → SKIP model validation
+if (!model || model.trim() === "") {
+  return { valid: true, message: "Model skipped (optional field)." };
 }
  // Validate brand
   const brandKey = brand.toLowerCase();
   if (!brandData[brandKey]) {
     return { valid: false, message: `Brand '${brand}' is not valid for '${category}'.` };
   }
-    // --- Check for empty model ---
+
+
+   /* // --- Check for empty model ---
   if (!model || model.trim() === "") {
     return { valid: false, message: `Please enter a model for brand '${brand}'.` };
-  }
+  } */
  
 
   // Validate model
@@ -112,8 +128,8 @@ if (!brand || brand.trim() === "") {
 
 
 function validateIphone(model) {
-  if (!model || model.trim() === "") {
-    return { valid: false, message: "iPhone model is required." };
+ if (!model || !model.trim()) {
+    return { valid: true }; // optional
   }
 
   const inputModel = model.trim();
@@ -124,6 +140,4 @@ function validateIphone(model) {
 
   return { valid: true, message: "Valid iPhone model." };
 }
-
-
 module.exports = validateBrandModel;

@@ -25,14 +25,19 @@ const upload = multer({ storage });
 const validateDeviceDetails = (deviceType, details) => {
   const errors = [];
 
-  const textRegex = /^[A-Za-z0-9\s\-().]+$/; // alphanumeric + few symbols
+/*   const textRegex = /^[A-Za-z0-9\s\-().]+$/; // alphanumeric + few symbols
   const numRegex = /^\d+$/;
   const batteryRegex = /^(100|[0-9]{1,2})$/;
   const yesNoRegex = /^(Yes|No)$/i;
-
-
-
-  switch (deviceType) {
+ */
+function normalizeCategory(value = "") {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[-\s]+/g, "-");
+}
+const category =  normalizeCategory(deviceType);
+  switch (category) {
    case "Laptop": {
 
    if (details.Processor?.trim()) {
@@ -109,14 +114,12 @@ case "Desktop": {
   if (!details.Brand || details.Brand.toString().trim() === "") {
     errors.push("Brand is required for Desktop.");
   }
-  if (!details.Model || details.Model.toString().trim() === "") {
+  /* if (!details.Model || details.Model.toString().trim() === "") {
     errors.push("Model is required for Desktop.");
-  }
+  } */
 
   // --- Processor (required) ---
-  if (!details.Processor || details.Processor.toString().trim() === "") {
-    errors.push("Processor is required for Desktop.");
-  } else {
+  if(details.Processor){
     const processor = details.Processor.toString().trim();
     const processorPattern = /^(intel|amd)?\s?(core\s)?(i[3579]|ryzen\s?[3579])(\s?\d{3,5}[a-zA-Z]?)?$/i;
     if (!processorPattern.test(processor)) {
@@ -126,9 +129,7 @@ case "Desktop": {
 
   // --- RAM (required) ---
   const ramKey = Object.keys(details).find(k => k.toLowerCase() === "ram");
-  if (!ramKey || !details[ramKey].toString().trim()) {
-    errors.push("RAM is required for Desktop.");
-  } else {
+ if(ramKey) {
     const ramString = details[ramKey].toString().trim();
     const ram = parseInt(ramString.replace(/\D/g, ""), 10);
     const allowedRAM = [4, 8, 16, 32, 64];
@@ -139,9 +140,7 @@ case "Desktop": {
 
   // --- Storage (required) ---
   const storageKey = Object.keys(details).find(k => k.toLowerCase() === "storage");
-  if (!storageKey || !details[storageKey].toString().trim()) {
-    errors.push("Storage is required for Desktop.");
-  } else {
+if(storageKey) {
     const storage = parseInt(details[storageKey].toString().trim(), 10);
     const allowedStorage = [128, 256, 512, 1024, 2048];
     if (isNaN(storage) || !allowedStorage.includes(storage)) {
@@ -170,9 +169,7 @@ case "Desktop": {
 
   // --- Monitor Included (required, Yes/No) ---
   const monitorKey = Object.keys(details).find(k => k.toLowerCase().replace(/\s+/g, "") === "monitorincluded");
-  if (!monitorKey) {
-    errors.push('Monitor Included field is missing.');
-  } else {
+ if(monitorKey) {
     const monitorValue = details[monitorKey].toString().trim();
     if (!/^yes$/i.test(monitorValue) && !/^no$/i.test(monitorValue)) {
       errors.push('Monitor Included must be "Yes" or "No".');
@@ -191,16 +188,14 @@ case "iPhone": {
     errors.push("Brand is required for Mobile/Tablet.");
   }
 
-  // --- Model ---
+  /* // --- Model ---
   if (!details.Model || details.Model.toString().trim() === "") {
     errors.push("Model is required.");
   }
-
+ */
 
    // --- Storage (GB) ---
-  if (!details.Storage || details.Storage.toString().trim() === "") {
-    errors.push("Storage is required.");
-  } else {
+ if(details.Storage) {
     const storageValue = parseInt(details.Storage.toString().replace(/\D/g, ""), 10);
     const allowedStorage = [8, 16, 32, 64, 128, 256, 512, 1024];
     if (isNaN(storageValue) || !allowedStorage.includes(storageValue)) {
@@ -216,10 +211,7 @@ if (deviceType === "Mobile") {
   const ramKey = Object.keys(details).find(
     (k) => k.toLowerCase().replace(/\s+/g, "") === "ram"
   );
-
-  if (!ramKey) {
-    errors.push("RAM is required for Mobile.");
-  } else {
+if(ramKey) {
     const ramValue = parseInt(details[ramKey].toString().replace(/\D/g, ""));
     const allowedRam = [2, 3, 4, 6, 8, 12, 16];
 
@@ -239,9 +231,7 @@ const batteryKey = Object.keys(details).find(
     k.toLowerCase().replace(/\s+/g, "") === "batteryhealth(%)"
 );
 
-if (!batteryKey) {
-  errors.push("Battery Health field is missing.");
-} else {
+if(batteryKey) {
   const value = details[batteryKey].toString().trim();
 
   if (value === "") {
@@ -263,9 +253,7 @@ if (!batteryKey) {
 
 
   if (deviceType === "Mobile" || deviceType === "Tablet") {
-    if (!screenKey) {
-      errors.push("Screen Size is required.");
-    } else {
+   if(screenKey) {
       const screenValue = parseFloat(details[screenKey].toString().replace(/[^\d.]/g, ""));
       if (isNaN(screenValue) || screenValue < 2 || screenValue > 20) {
         errors.push("Screen Size must be between 2 and 20 inches.");
@@ -291,18 +279,17 @@ const get = (field) => {
   return foundKey ? details[foundKey] : "";
 };
 case "TV":
-  const brand = get("brand");
-  const model = get("model");
+ 
   const screenSize = get("screenSize");
   const displayType = get("displayType");
   const resolution = get("resolution");
 
-  if (!brand) errors.push("Brand is required for TV.");
-  if (!model) errors.push("Model is required for TV.");
+ /*  if (!brand) errors.push("Brand is required for TV.");
+  if (!model) errors.push("Model is required for TV."); */
 
- if (!screenSize) {
-  errors.push("Screen Size is required for TV.");
-} else if (!/^\d+(\.\d+)?$/.test(screenSize)) {
+ if (screenSize) {
+ 
+ if (!/^\d+(\.\d+)?$/.test(screenSize)) {
   errors.push("Screen Size must be a valid number.");
 } else {
   const size = parseFloat(screenSize);
@@ -311,10 +298,8 @@ case "TV":
     errors.push("Screen Size must be between 10 and 120 inches.");
   }
 }
-
-  if (!displayType) {
-    errors.push("Display Type is required for TV.");
-  } else {
+}
+  if(displayType){
     const validDisplays = ["LED", "OLED", "QLED", "LCD", "PLASMA"];
     if (!validDisplays.includes(displayType.toUpperCase())) {
       errors.push(`Display Type must be one of: ${validDisplays.join(", ")}.`);
@@ -333,16 +318,7 @@ case "TV":
 
 
    case "CPU":
-  // Brand Required
-  if (!details.Brand || details.Brand.toString().trim() === "") {
-    errors.push("Brand is required for CPU.");
-  }
 
-  // Model Required
-  if (!details.Model || details.Model.toString().trim() === "") {
-    errors.push("Model is required for CPU.");
-  }
-// Clean the value correctly
 let ct = details.cores;
 
 // Convert to string ALWAYS
@@ -369,13 +345,11 @@ else {
 
     case "RAM":
 
-      if (!details.Brand) errors.push("Brand is required for RAM.");
+  
       
      const validCapacities = [2, 4, 8, 16, 32, 64, 128];
 
-if (!details.Capacity) {
-  errors.push("Capacity (GB) is required for RAM.");
-} else {
+if(details.Capacity) {
   const capacityValue = Number(details.Capacity);
 
   if (!validCapacities.includes(capacityValue)) {
@@ -387,24 +361,22 @@ const ramType = details.type || details.Type;
 const ramSpeed = details.speed || details.Speed;
 
 // ===== RAM TYPE VALIDATION =====
-if (!ramType || ramType.trim() === "") {
-  errors.push("RAM Type is required.");
-} else if (!/^DDR[3-5]$/i.test(ramType.trim())) {
+if (ramType ) {
+ if (!/^DDR[3-5]$/i.test(ramType.trim())) {
   errors.push("Type must be DDR3, DDR4, or DDR5.");
 }
-
+}
 // ===== RAM SPEED VALIDATION =====
-if (!ramSpeed || ramSpeed.trim() === "") {
-  errors.push("RAM Speed is required.");
-} else if (!/^\d+$/.test(ramSpeed.trim())) {
+if (ramSpeed ) {
+  if (!/^\d+$/.test(ramSpeed.trim())) {
   errors.push("Speed must be numeric (e.g., 3200).");
 }
-
+}
 
       break;
 
     case "Hard Disk":
-      if (!details.Brand) errors.push("Brand is required for Hard Disk.");
+      
 
       const capacity = details.capacity || details.Capacity;
   const type = details.diskType || details.DiskType;
@@ -444,14 +416,14 @@ if (!ramSpeed || ramSpeed.trim() === "") {
 
 
 case "iMac": {
-  const model = details.Model ?? details.model ?? "";
+ 
   const processor = details.Processor ?? details.processor ?? "";
-  const ram = details.RAM ?? details.ram ?? "";
+ 
 
-  // Model required
+/*   // Model required
   if (!model.trim()) {
     errors.push("Model is required for iMac.");
-  }
+  } */
 
   // Processor validation (example: allow Apple Silicon M1/M2/M3, or Intel core i5/i7)
   if (processor) {
@@ -460,8 +432,6 @@ case "iMac": {
     if (!procPattern.test(processor.trim())) {
       errors.push("Processor must be a valid iMac processor (e.g., M1, M2, Intel Core i5).");
     }
-  } else {
-    errors.push("Processor is required for iMac.");
   }
 
 // Normalize RAM input
@@ -474,9 +444,8 @@ let ramValueRaw =
    "").trim();
 
 // Empty check
-if (!ramValueRaw) {
-  errors.push("RAM is required for iMac.");
-} else {
+if (ramValueRaw) {
+ {
   // CASE 1: Only number (e.g., "8")
   const onlyNumberMatch = ramValueRaw.match(/^(\d+)$/);
 
@@ -496,29 +465,22 @@ if (!ramValueRaw) {
     }
   }
 }
-
+}
   break;
 }
 
 case "Apple Laptop": {
-  const model = details.Model ?? details.model ?? "";
+
   const processor = details.Processor ?? details.processor ?? "";
-  const ram = details.RAM ?? details.ram ?? "";
 
-  // Model required
-  if (!model.trim()) {
-    errors.push("Model is required for Apple Laptop.");
-  }
 
-  // Processor validation
+
   if (processor) {
     const procPattern = /^(M[1-4]\s?(Pro|Max)?|Intel\s?Core\s?(i3|i5|i7|i9))/i;
     if (!procPattern.test(processor.trim())) {
       errors.push("Processor must be a valid Apple Laptop processor (e.g., M1, M2 Pro, Intel Core i7).");
     }
-  } else {
-    errors.push("Processor is required for Apple Laptop.");
-  }
+  } 
 
  // Normalize RAM input
 const Ram =
@@ -535,9 +497,7 @@ const Ram =
 const ramValueRaw = Ram.trim();
 
 // Empty check
-if (!ramValueRaw) {
-  errors.push("RAM is required for Apple Laptop.");
-} else {
+if (ramValueRaw)  {
   // Validate: 8 GB, 16GB, etc.
   const ramMatch = ramValueRaw.match(/^(\d+)\s*(GB)?$/i);
 
@@ -556,49 +516,47 @@ if (!ramValueRaw) {
 }
 
 
- case "all-in-one pc": {
-  const allbrand = details.Brand || details.brand || "";
-  const allinmodel = details.Model || details.model || "";
-  const processor = details.Processor || details.processor || "";
-  const ram = details.RAM || details.ram || "";
-  const storage = details.Storage || details.storage || "";
+case "all-in-one-pc": {
+  const processor = (details.Processor || details.processor || "").trim();
+  const ram = (details.RAM || details.ram || "").trim();
+  const storage = (details.Storage || details.storage || "").trim();
 
-  // --- Brand & Model are validated outside ---
-  if (!allbrand.trim()) errors.push("Brand is required for All-in-One PC.");
-  if (!allinmodel.trim()) errors.push("Model is required for All-in-One PC.");
-
-  // --- Processor ---
-  if (!processor.trim()) {
-    errors.push("Processor is required for All-in-One PC.");
-  } else if (!/^[a-zA-Z0-9\s\-]+$/.test(processor.trim())) {
-    errors.push("Processor should contain only letters, numbers, spaces, and hyphens (e.g., Intel i5-12400).");
-  }
-
-  // --- RAM ---
-  if (!ram.trim()) {
-    errors.push("RAM is required for All-in-One PC.");
-  } else {
-    const ramMatch = ram.trim().match(/^(\d+)\s*(GB|TB)?$/i);
-    if (!ramMatch) errors.push("RAM must be numeric (e.g., 8GB, 16GB, 1TB).");
-    else {
-      let ramValue = parseInt(ramMatch[1], 10);
-      const unit = ramMatch[2] ? ramMatch[2].toUpperCase() : "GB";
-      if (unit === "TB") ramValue *= 1024;
-      if (ramValue < 2 || ramValue > 512) errors.push("RAM must be between 2GB and 512GB.");
+  // --- Processor (optional but validated if present)
+  if (processor !== "") {
+    if (!/^[a-zA-Z0-9\s\-]+$/.test(processor)) {
+      errors.push(
+        "Processor should contain only letters, numbers, spaces, and hyphens (e.g., Intel i5-12400)."
+      );
     }
   }
 
-  // --- Storage ---
-  if (!storage.trim()) {
-    errors.push("Storage is required for All-in-One PC.");
-  } else {
-    const storageMatch = storage.trim().match(/^(\d+)\s*(GB|TB)?$/i);
-    if (!storageMatch) errors.push("Storage must be numeric (e.g., 256GB, 1TB).");
-    else {
+  // --- RAM (optional but validated if present)
+  if (ram) {
+    const ramMatch = ram.match(/^(\d+)\s*(GB|TB)?$/i);
+    if (!ramMatch) {
+      errors.push("RAM must be numeric (e.g., 8GB, 16GB, 1TB).");
+    } else {
+      let ramValue = parseInt(ramMatch[1], 10);
+      const unit = ramMatch[2] ? ramMatch[2].toUpperCase() : "GB";
+      if (unit === "TB") ramValue *= 1024;
+      if (ramValue < 2 || ramValue > 512) {
+        errors.push("RAM must be between 2GB and 512GB.");
+      }
+    }
+  }
+
+  // --- Storage (optional but validated if present)
+  if (storage !== "") {
+    const storageMatch = storage.match(/^(\d+)\s*(GB|TB)?$/i);
+    if (!storageMatch) {
+      errors.push("Storage must be numeric (e.g., 256GB, 1TB).");
+    } else {
       let storageValue = parseInt(storageMatch[1], 10);
       const unit = storageMatch[2] ? storageMatch[2].toUpperCase() : "GB";
       if (unit === "TB") storageValue *= 1024;
-      if (storageValue < 64 || storageValue > 10000) errors.push("Storage must be between 64GB and 10TB.");
+      if (storageValue < 64 || storageValue > 10000) {
+        errors.push("Storage must be between 64GB and 10TB.");
+      }
     }
   }
 
@@ -607,14 +565,12 @@ if (!ramValueRaw) {
 
 
 
-    case "Monitor":
-      if (!details.Brand) errors.push("Brand is required for Monitor.");
 
-     // Screen Size validation
+    case "Monitor":
+    // Screen Size validation
   const monitorscreenSize = details.screenSize || details.ScreenSize;
   if (!monitorscreenSize) {
-    errors.push("Screen Size is required for Monitor.");
-  } else if (!/^\d+(\.\d+)?$/.test(monitorscreenSize)) {
+  if (!/^\d+(\.\d+)?$/.test(monitorscreenSize)) {
     errors.push("Screen Size must be a number (e.g., 24, 27.5).");
   } else {
     const sizeValue = parseFloat(monitorscreenSize);
@@ -622,16 +578,16 @@ if (!ramValueRaw) {
       errors.push("Screen Size must be between 10 and 100 inches.");
     }
   }
-
+  }
   // Resolution validation
   const monitorresolution = details.Resolution || details.resolution;
-  if (!monitorresolution) {
-    errors.push("Resolution is required for Monitor.");
-  } else if (!/^\d{3,5}\s*([xX*])\s*\d{3,5}$/.test(monitorresolution)) {
+  if (monitorresolution) {
+   if (!/^\d{3,5}\s*([xX*])\s*\d{3,5}$/.test(monitorresolution)) {
     errors.push(
       "Resolution must be in the format WidthxHeight (e.g., 1920x1080)."
     );
   }
+}
       break;
 
    case "Other":
